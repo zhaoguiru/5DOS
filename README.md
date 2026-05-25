@@ -86,7 +86,7 @@ Linux:
 
 ## 6. Screenshot | 界面预览
 
-(Placeholder: Insert your Windows 11 screenshot here)
+![5DOS Running on Windows 11](monitor.jpg)
 
 ---
 
