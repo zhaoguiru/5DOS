@@ -1,119 +1,140 @@
-# 5DOS Real-time Monitor | 五维操作系统诊断系统 v1.0
+Five-Dimensional Operating System Probe (5DOS)
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey)]()
-[![Theory](https://img.shields.io/badge/Theory-5D--ST-orange)]()
+A cross-platform process health diagnosis framework that unifies Windows and Linux process metrics into a single, comparable synergy coefficient.
 
-> The first engineering implementation of Five-Dimensional Systems Theory (5D-ST) in operating system diagnosis.
-> 五维系统论（5D-ST）在操作系统诊断领域的首个工程化实现。
+Python 3.8+ | MIT License | Windows & Linux | DOI: 10.5281/zenodo.20376185
 
----
+Overview
 
-## 1. Overview | 简介
+Traditional monitoring tools (top, htop, Windows Task Manager) rely on single-dimensional thresholds such as CPU > 80% or memory > 400 MB. They fail to detect complex pathologies like "sufficient memory but handle leakage" or "idle CPU but exploding context switches."
 
-5DOS Monitor is a real-time local process monitor built on Five-Dimensional Systems Theory (5D-ST). It maps every system process into five ontological dimensions—Boundary, Reserve, Structure, Direction, and Intensity—and computes the Synergy Coefficient κ to quantify the health and coupling state of digital entities.
+Five-Dimensional Operating System Probe (5DOS) maps every OS process into five dimensions—Boundary (B), Structure (S), Reserve (R), Direction (D), and Intensity (I)—and computes internal/external synergy coefficients to quantify process health. This enables cross-platform diagnosis without rewriting threshold rules per OS.
 
-5DOS 监控器是基于五维系统论（5D-ST）构建的本地实时进程诊断工具。它将每个系统进程映射到存在论五维——边界、储备、结构、方向、强度——并通过协同系数 κ 量化数字存在体的健康度与耦合状态。
+Core Formula
 
----
+Internal Synergy Coefficient sigma measures five-dimensional balance via ten pairwise matching degrees:
+sigma = product of (1 - |x_i - x_j|) for all 1<=i<j<=5
 
-## 2. Core Formula | 核心公式
+External Synergy Coefficient k measures deviation from the system baseline:
+k = k_dir^0.20 * k_B^0.20 * k_S^0.20 * k_R^0.20 * k_I^0.20
 
-### Synergy Coefficient | 协同系数
+Energy Level E reflects process scale, independent of synergy:
+E = (product of max(v_d, 0.01) for d=1 to 5)^0.2
 
-    κ = γ_B · γ_R · γ_S · γ_D · γ_I
+Detailed theoretical foundations are available in the 5D-ST preprint:
+Zenodo DOI 10.5281/zenodo.19925248
 
-### Inner Synergy Coefficient | 内协同系数
+Five Dimensions
 
-    σ = ∏_{1≤i<j≤5} γ_{ij}
+Dimension B (Boundary):
+Windows: VMS + num_handles() + connections
+Linux: VMS + num_fds + connections
 
-Where γ_{ij} represents the matching degree between dimension i and dimension j (10 inter-dimensional pairs in total).
+Dimension S (Structure):
+Windows & Linux: threads + children
 
-其中 γ_{ij} 表示维度 i 与维度 j 之间的匹配度（五维共产生 10 个维度对）。
+Dimension R (Reserve):
+Windows & Linux: CPU% + RSS + IO
 
----
+Dimension D (Direction):
+Windows: Priority class (Realtime=100, High=80, Normal=50, Idle=20)
+Linux: nice value mapped to [0,100]
 
-## 3. Five Dimensions | 五维定义
+Dimension I (Intensity):
+Windows & Linux: ln(1 + delta_ctx/delta_t + delta_cpu/delta_t)
 
-| Dimension | Symbol | Meaning | 含义 |
-|-----------|--------|---------|------|
-| Boundary | B | Memory usage ratio | 内存占用比例 |
-| Reserve | R | Cumulative CPU time | CPU 累积时间 |
-| Structure | S | Thread count | 线程数量 |
-| Direction | D | Process state encoding | 进程状态编码 |
-| Intensity | I | Instantaneous CPU usage | CPU 瞬时占用 |
-
-Direction encoding | 方向编码:
-- running = +1.0 (forward evolution | 正向演化)
-- sleeping = +0.2 (low-energy maintenance | 低能耗维持)
-- stopped = -0.8 (external block | 外部阻断)
-- zombie = -1.0 (death residual | 死亡残留)
-
----
-
-## 4. Installation | 安装
-
-Requirements | 环境要求
-- Python 3.8+
-- psutil
-- PyQt5
-- matplotlib
-- numpy
+Installation
 
 Windows:
-
-    pip install psutil PyQt5 matplotlib numpy
-    python 5DOS_monitor.py
+pip install psutil PyQt5 matplotlib numpy
+python 5DOS_probe.py
 
 Linux:
+sudo apt install python3-pyqt5 python3-matplotlib python3-numpy python3-psutil
+python3 5DOS_probe.py
 
-    sudo apt install python3-pyqt5 python3-matplotlib python3-numpy python3-psutil
-    python3 5DOS_monitor.py
+Quick Start
 
----
+Step 1: Run the probe.
+python 5DOS_probe.py
 
-## 5. Features | 功能特性
+Step 2: Observe the real-time terminal output.
 
-- Real-time 5D Radar | 实时五维雷达图: Visualize the five-dimensional state of any selected process.
-- κ Trend Tracking | κ 趋势追踪: Historical curve of synergy coefficient for each process.
-- System Health Gauge | 系统健康度: Global average κ with three-level color alert (Green/Yellow/Red).
-- Bilingual UI | 中英双语界面: One-click switch between Chinese and English.
-- Status Filter | 状态过滤: Filter by process state (All / Running / Running+Sleeping / Idle).
-- Ontological Diagnosis | 存在论异常诊断: Automatic shortboard detection based on the weakest dimension.
+Example output:
+PID    NAME          B      S      R      D      I      sigma  k      E      TAG
+1234   python3      0.12   0.05   0.80   0.50   0.03   0.042  0.612  45.2   [ALERT]
+5678   systemd      0.01   0.02   0.00   0.50   0.01   0.291  0.884  12.1   [HEALTHY]
 
----
+Step 3: Identify bottlenecks.
+- sigma < 0.1  means dimensional imbalance detected
+- TAG = [ALERT] means high-scale, low-synergy process requiring attention
+- Bottleneck = BR means Boundary-Reserve mismatch (e.g., large memory footprint but low actual CPU/IO usage)
 
-## 6. Screenshot | 界面预览
+Interpreting Output
 
-![5DOS Running on Windows 11](monitor.jpg)
+Field: sigma
+Meaning: Internal synergy (10 pairwise matching degrees)
+Rule: < 0.1 triggers [ALERT]
 
----
+Field: k
+Meaning: External synergy (deviation from system median)
+Rule: < 0.5 triggers warning
 
-## 7. Project Philosophy | 项目理念
+Field: E
+Meaning: Energy level (process scale)
+Rule: > 50 means large-scale process
 
-5DOS is not merely a process monitor—it is the computational verification of Five-Dimensional Systems Theory. By open-sourcing this tool, we invite the global community to empirically validate whether the synergy coefficient κ is an intrinsic property of digital entities or merely an artifact of observation.
+Field: TAG
+Meaning: Health classification
+Values: [HEALTHY] / [NORMAL] / [ALERT] / [SICK]
 
-5DOS 不仅仅是一个进程监控器，它是五维系统论的可计算验证。通过开源这一工具，我们邀请全球社区共同实证：协同系数 κ 究竟是数字存在体的内禀属性，还是观测数据的过拟合产物。
+Field: Bottleneck
+Meaning: Weakest dimension pair
+Example: BR = Boundary-Reserve imbalance
 
----
+Why 5DOS? — Real-World Scenarios
 
-## 8. License | 开源协议
+Scenario 1: Zombie Spawn Detection
+A parent process forks 200 child processes and exits without calling wait().
+- htop: Parent shows CPU 0%, MEM 12 MB, appears healthy.
+- 5DOS: Flags [ALERT] with sigma = 0.003, bottleneck SI (Structure-Intensity decoupling), revealing the zombie swarm invisible to resource thresholds.
+
+Scenario 2: Handle Leak on Windows
+A background service leaks file handles at 50/sec.
+- htop / Resource Monitor: Memory stays below 200 MB, shows green.
+- 5DOS: Detects Boundary (B) inflating to 0.95 while Reserve (R) lags at 0.02; BR matching degree collapses to 0.03, triggering [ALERT] 6 seconds before the 300-handle threshold is reached.
+
+Scenario 3: CPU Burst vs. Idle Process
+A child process loops intensive computation but averages below 80% CPU over a 2-second window.
+- htop rule (CPU > 80%): Fails to trigger (F1 = 0).
+- 5DOS: sigma drops below threshold within 1.1 seconds due to Intensity-Reserve imbalance, 100% recall.
+
+Screenshot
+![5DOS Probe v1.0 running on Windows 11](monitor.jpg)
+5DOS Probe v1.0 running on Windows 11
+The GUI dashboard shows:
+- Left panel: real-time process table with PID, five-dimensional vector, sigma, k, E, and health tags
+- Right panel: radar charts and time-series plots for selected processes
+
+Features
+
+- Cross-platform native adaptation: Unified diagnosis across Windows (handles, priority classes) and Linux (file descriptors, nice values).
+- Real-time 5D radar: Visualize the five-dimensional state of any selected process.
+- kappa trend tracking: Historical curves of synergy coefficients.
+- System health gauge: Global average sigma with color-coded alerts.
+- Decomposition diagnosis: Pinpoint exact dimension pairs causing imbalance.
+- Bilingual UI: One-click switch between Chinese and English.
+
+License
 
 This project is released under the MIT License.
 
-本项目采用 MIT 协议 开源。
+Contact
 
----
+Author: Guiru Zhao (赵桂儒)
 
-## 9. Contact | 联系方式
+Email: zhaoguiru@gmail.com
 
-Author | 作者: Zhao Guiru (赵桂儒) / Founder of Five-Dimensional Systems Theory
-Email | 邮箱: zhaoguiru@gmail.com
-Theory Portal | 理论入口: https://www.5dtheory.org
+Theory Portal: https://www.5dtheory.org
 
----
-
-"The last low-hanging fruit of human civilization."
-"人类文明史上最后一个弯腰就能摘到的果子。"
-…
+Source Code & Datasets: Zenodo DOI 10.5281/zenodo.20376185
