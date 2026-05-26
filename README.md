@@ -138,3 +138,4 @@ Email: zhaoguiru@gmail.com
 Theory Portal: https://www.5dtheory.org
 
 Source Code & Datasets: Zenodo DOI 10.5281/zenodo.20376185
+- 5DOS-OS (Execution Layer): Zenodo DOI [10.5281/zenodo.20399222](https://doi.org/10.5281/zenodo.20399222)
